@@ -1,6 +1,6 @@
-Include {{ nginx_config_dir }}/modsec/modsecurity.conf
-Include {{ nginx_config_dir }}/modsec/owasp-modsecurity-crs/crs-setup.conf
-Include {{ nginx_config_dir }}/modsec/owasp-modsecurity-crs/rules/*.conf
+Include {{ modsecurity_config_dir }}/modsecurity.conf
+Include {{ modsecurity_config_dir }}/owasp-modsecurity-crs/crs-setup.conf
+Include {{ modsecurity_config_dir }}/owasp-modsecurity-crs/rules/*.conf
 
 # Exceptions for Nextcloud
 SecRuleRemoveById 200002 911100 949110

@@ -1,0 +1,120 @@
+---
+# tasks file for ansible-role-modsecurity
+
+- name: install modsecurity dependencies
+  apt:
+    name: ['git', 'g++', 'flex', 'bison', 'curl', 'doxygen', 'libyajl-dev', 'libgeoip-dev', 'libtool', 'dh-autoreconf', 'libcurl4-gnutls-dev', 'libxml2', 'libpcre++-dev', 'libxml2-dev', 'zlib1g-dev', 'libssl-dev', 'libxslt1-dev', 'libgd-dev']
+
+- name: clone the modsecurity repository
+  git:
+    repo: "https://github.com/SpiderLabs/ModSecurity.git"
+    version: "{{ modsecurity_branch }}"
+    accept_hostkey: yes
+    depth: 1
+    force: yes
+    dest: "{{ modsecurity_build_folder }}"
+
+- name: build and install modsecurity
+  shell: "{{ item }}"
+  args:
+    chdir: "{{ modsecurity_build_folder }}"
+  with_items:
+    - ./build.sh
+    - git submodule init
+    - git submodule update
+    - ./configure
+    - make -j{{ ansible_processor_vcpus|default(ansible_processor_count) }}
+    - make install
+
+- name: clone the modsecurity-nginx repository
+  git:
+    repo: "https://github.com/SpiderLabs/ModSecurity-nginx.git"
+    version: "{{ modsecurity_nginx_branch }}"
+    accept_hostkey: yes
+    depth: 1
+    force: yes
+    dest: "{{ modsecurity_build_folder }}-nginx"
+
+- name: read the nginx version
+  command: nginx -v
+  register: nginx_version_output
+
+# nginx writes the version to stderr
+- name: parse the installed nginx version
+  set_fact:
+    installed_nginx_version: "{{ nginx_version_output.stderr.split('/')[1] }}"
+
+- name: download and extract the nginx sources for building the module
+  unarchive:
+    src: "http://nginx.org/download/nginx-{{ installed_nginx_version }}.tar.gz"
+    remote_src: yes
+    dest: /opt
+    creates: "/opt/nginx-{{ installed_nginx_version }}"
+
+- name: configure the modsecurity-nginx module
+  shell: ./configure --add-dynamic-module=/opt/ModSecurity-nginx --add-dynamic-module=/opt/ModSecurity-nginx --with-cc-opt='-g -O2 -fdebug-prefix-map=/build/nginx-tBUzFN/nginx-1.14.2=. -fstack-protector-strong -Wformat -Werror=format-security -fPIC -Wdate-time -D_FORTIFY_SOURCE=2' --with-ld-opt='-Wl,-z,relro -Wl,-z,now -fPIC' --with-debug --with-pcre-jit --with-http_ssl_module --with-http_stub_status_module --with-http_realip_module --with-http_auth_request_module --with-http_v2_module --with-http_dav_module --with-http_slice_module --with-threads --with-http_addition_module --with-http_geoip_module=dynamic --with-http_gunzip_module --with-http_gzip_static_module --with-http_image_filter_module=dynamic --with-http_sub_module --with-http_xslt_module=dynamic --with-stream=dynamic --with-stream_ssl_module --with-stream_ssl_preread_module --with-mail=dynamic --with-mail_ssl_module
+  args:
+    chdir: "/opt/nginx-{{ installed_nginx_version }}"
+- name: build the modsecurity-nginx module
+  shell: make modules
+  args:
+    chdir: "/opt/nginx-{{ installed_nginx_version }}"
+
+- name: copy the module to nginx module directory
+  shell: cp /opt/nginx-{{ installed_nginx_version }}/objs/ngx_http_modsecurity_module.so {{ nginx_modules_dir }}
+  args:
+    creates: "{{ nginx_modules_dir }}/ngx_http_modsecurity_module.so"
+
+- name: Create folder for Modsec config and rules
+  file:
+    path: "{{ modsecurity_config_dir }}"
+    state: directory
+
+- name: Copy recommended conf to become modsecurity.conf
+  copy:
+    src: "{{ modsecurity_build_folder }}/modsecurity.conf-recommended"
+    dest: "{{ nginx_config_dir }}/modsec/modsecurity.conf"
+    remote_src: yes
+
+- name: Set Request body limit to value configured for PHP
+  lineinfile:
+    path: "{{ nginx_config_dir }}/modsec/modsecurity.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: '^SecRequestBodyLimit'
+      line: "SecRequestBodyLimit {{ php_post_max_size }}"
+    - regexp: "^SecRequestBodyNoFilesLimit"
+      line: "SecRequestBodyNoFilesLimit {{ php_post_max_size }}"
+
+- name: Copy unicode.mapping file also
+  copy:
+    src: "{{ modsecurity_build_folder }}/unicode.mapping"
+    dest: "{{ nginx_config_dir }}/modsec/unicode.mapping"
+    remote_src: yes
+
+- name: Activate blocking rather than detection only
+  replace:
+    path: "{{ nginx_config_dir }}/modsec/modsecurity.conf"
+    regexp: "SecRuleEngine DetectionOnly"
+    replace: "SecRuleEngine On"
+
+- name: Create a main.conf from template
+  template:
+    src: main.conf.j2
+    dest: "{{ nginx_config_dir }}/modsec/main.conf"
+
+- name: Obtain OWASP Modsecurity Rules
+  git:
+    repo: "https://github.com/SpiderLabs/owasp-modsecurity-crs"
+    dest: "{{ nginx_config_dir }}/modsec/owasp-modsecurity-crs"
+    version: "{{ modsecurity_owasp_version }}"
+
+- name: Copy crs-setup.conf.example to become crs-setup.conf
+  copy:
+    src: "{{ nginx_config_dir }}/modsec/owasp-modsecurity-crs/crs-setup.conf.example"
+    dest: "{{ nginx_config_dir }}/modsec/owasp-modsecurity-crs/crs-setup.conf"
+    remote_src: yes
+  notify:
+    - validate nginx configuration
+    - restart nginx

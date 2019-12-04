@@ -83,9 +83,9 @@
     line: "{{ item.line }}"
   with_items:
     - regexp: '^SecRequestBodyLimit'
-      line: "SecRequestBodyLimit {{ php_post_max_size }}"
+      line: "SecRequestBodyLimit {{ modsecurity_max_size }}"
     - regexp: "^SecRequestBodyNoFilesLimit"
-      line: "SecRequestBodyNoFilesLimit {{ php_post_max_size }}"
+      line: "SecRequestBodyNoFilesLimit {{ modsecurity_max_size }}"
 
 - name: Copy unicode.mapping file also
   copy:

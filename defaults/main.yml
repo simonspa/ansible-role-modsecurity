@@ -12,3 +12,6 @@ modsecurity_owasp_version: "v3.2/master"
 modsecurity_build_folder: /opt/ModSecurity
 
 modsecurity_config_dir: "/etc/nginx/modsec"
+
+# 10240M in bytes:
+modsecurity_max_size: 10737418240

@@ -3,7 +3,6 @@
 
 modsecurity_enable: true
 
-nginx_config_dir: /etc/nginx
 nginx_modules_dir: /usr/lib/nginx/modules/
 
 modsecurity_branch: v3.0.3
@@ -12,4 +11,4 @@ modsecurity_owasp_version: "v3.2/master"
 
 modsecurity_build_folder: /opt/ModSecurity
 
-modsecurity_config_dir: "{{ nginx_config_dir }}/modsec"
+modsecurity_config_dir: "/etc/nginx/modsec"

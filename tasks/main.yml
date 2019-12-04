@@ -73,12 +73,12 @@
 - name: Copy recommended conf to become modsecurity.conf
   copy:
     src: "{{ modsecurity_build_folder }}/modsecurity.conf-recommended"
-    dest: "{{ nginx_config_dir }}/modsec/modsecurity.conf"
+    dest: "{{modsecurity_config_dir }}/modsecurity.conf"
     remote_src: yes
 
 - name: Set Request body limit to value configured for PHP
   lineinfile:
-    path: "{{ nginx_config_dir }}/modsec/modsecurity.conf"
+    path: "{{ modsecurity_config_dir }}/modsecurity.conf"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
@@ -90,30 +90,30 @@
 - name: Copy unicode.mapping file also
   copy:
     src: "{{ modsecurity_build_folder }}/unicode.mapping"
-    dest: "{{ nginx_config_dir }}/modsec/unicode.mapping"
+    dest: "{{modsecurity_config_dir }}/unicode.mapping"
     remote_src: yes
 
 - name: Activate blocking rather than detection only
   replace:
-    path: "{{ nginx_config_dir }}/modsec/modsecurity.conf"
+    path: "{{modsecurity_config_dir }}/modsecurity.conf"
     regexp: "SecRuleEngine DetectionOnly"
     replace: "SecRuleEngine On"
 
 - name: Create a main.conf from template
   template:
     src: main.conf.j2
-    dest: "{{ nginx_config_dir }}/modsec/main.conf"
+    dest: "{{ modsecurity_config_dir }}/main.conf"
 
 - name: Obtain OWASP Modsecurity Rules
   git:
     repo: "https://github.com/SpiderLabs/owasp-modsecurity-crs"
-    dest: "{{ nginx_config_dir }}/modsec/owasp-modsecurity-crs"
+    dest: "{{ modsecurity_config_dir }}/owasp-modsecurity-crs"
     version: "{{ modsecurity_owasp_version }}"
 
 - name: Copy crs-setup.conf.example to become crs-setup.conf
   copy:
-    src: "{{ nginx_config_dir }}/modsec/owasp-modsecurity-crs/crs-setup.conf.example"
-    dest: "{{ nginx_config_dir }}/modsec/owasp-modsecurity-crs/crs-setup.conf"
+    src: "{{ modsecurity_config_dir }}/owasp-modsecurity-crs/crs-setup.conf.example"
+    dest: "{{ modsecurity_config_dir }}/owasp-modsecurity-crs/crs-setup.conf"
     remote_src: yes
   notify:
     - validate nginx configuration

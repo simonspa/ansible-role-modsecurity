@@ -38,6 +38,7 @@
 - name: read the nginx version
   command: nginx -v
   register: nginx_version_output
+  changed_when: false
 
 # nginx writes the version to stderr
 - name: parse the installed nginx version
@@ -75,6 +76,7 @@
     src: "{{ modsecurity_build_folder }}/modsecurity.conf-recommended"
     dest: "{{modsecurity_config_dir }}/modsecurity.conf"
     remote_src: yes
+    force: no
 
 - name: Set Request body limit to value configured for PHP
   lineinfile:
@@ -92,6 +94,7 @@
     src: "{{ modsecurity_build_folder }}/unicode.mapping"
     dest: "{{modsecurity_config_dir }}/unicode.mapping"
     remote_src: yes
+    force: no
 
 - name: Activate blocking rather than detection only
   replace:

@@ -17,7 +17,9 @@ modsecurity_config_dir: "/etc/nginx/modsec"
 modsecurity_max_size: 10737418240
 
 # List of ids of security rules to be removed
-modsecurity_secrule_remove: {}
+modsecurity_secrule_remove: []
 
 # List of action strings to be added to the configuration
-modsecurity_secactions: {}
+modsecurity_secactions: []
+
+modsecurity_auditlog: "/var/log/modsec_audit.log"

@@ -11,3 +11,8 @@ SecRuleRemoveById {{ rule_id }}
 {% for action in modsecurity_secactions %}
 SecAction "{{ action }}"
 {% endfor %}
+
+{% if modsecurity_auditlog %}
+SecAuditEngine RelevantOnly
+SecAuditLog {{ modsecurity_auditlog }}
+{% endif %}

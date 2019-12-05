@@ -2,29 +2,12 @@ Include {{ modsecurity_config_dir }}/modsecurity.conf
 Include {{ modsecurity_config_dir }}/owasp-modsecurity-crs/crs-setup.conf
 Include {{ modsecurity_config_dir }}/owasp-modsecurity-crs/rules/*.conf
 
-# Exceptions for Nextcloud
-SecRuleRemoveById 200002 911100 949110
+# Removed SecRules:
+{% for rule_id in modsecurity_secrule_remove %}
+SecRuleRemoveById {{ rule_id }}
+{% endfor %}
 
-SecRuleRemoveById 953120
-SecRuleRemoveById 941100
-SecRuleRemoveById 920420
-
-# DAV
-SecRuleRemoveById 930130 920440 920340 944130
-
-SecRuleRemoveById 930100 930110
-SecRuleRemoveByID 932115 932110
-SecRuleRemoveById 920170
-
-# Enable Nextcloud exceptions
-SecAction "id:900130,phase:1,nolog,pass,t:none,setvar:tx.crs_exclusions_nextcloud=1"
-
-# Illegal content type header:
-SecRuleRemoveById 920470
-
-# Allow file various file uploads and methods
-SecRuleRemoveById 960010
-SecRuleRemoveById 960032
-
-# Allow more methods:
-SecAction "id:900200,phase:1,nolog,pass,t:none,setvar:'tx.allowed_methods=GET HEAD POST OPTIONS DELETE PROPFIND REPORT PUT MOVE MKCOL'"
+# SecAction entries:
+{% for action in modsecurity_secactions %}
+SecAction "{{ action }}"
+{% endfor %}

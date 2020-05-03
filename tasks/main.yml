@@ -88,7 +88,7 @@
 - name: Copy recommended conf to become modsecurity.conf
   copy:
     src: "{{ modsecurity_build_folder }}/modsecurity.conf-recommended"
-    dest: "{{modsecurity_config_dir }}/modsecurity.conf"
+    dest: "{{ modsecurity_config_dir }}/modsecurity.conf"
     remote_src: yes
     force: no
 
@@ -106,7 +106,7 @@
 - name: Copy unicode.mapping file also
   copy:
     src: "{{ modsecurity_build_folder }}/unicode.mapping"
-    dest: "{{modsecurity_config_dir }}/unicode.mapping"
+    dest: "{{ modsecurity_config_dir }}/unicode.mapping"
     remote_src: yes
     force: no
 

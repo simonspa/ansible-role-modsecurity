@@ -111,10 +111,18 @@
     force: no
 
 - name: Activate blocking rather than detection only
-  replace:
-    path: "{{modsecurity_config_dir }}/modsecurity.conf"
-    regexp: "SecRuleEngine DetectionOnly"
-    replace: "SecRuleEngine On"
+  lineinfile:
+    path: "{{ modsecurity_config_dir }}/modsecurity.conf"
+    regexp: "^SecRuleEngine "
+    line: "SecRuleEngine On"
+  when: modsecurity_block
+
+- name: Activate detection only mode
+  lineinfile:
+    path: "{{ modsecurity_config_dir }}/modsecurity.conf"
+    regexp: "^SecRuleEngine "
+    line: "SecRuleEngine DetectionOnly"
+  when: not modsecurity_block
 
 - name: Create a main.conf from template
   template:

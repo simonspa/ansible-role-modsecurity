@@ -3,6 +3,9 @@
 
 modsecurity_enable: true
 
+# Switch between blocking and detection-onlz operation modes
+modsecurity_block: true
+
 nginx_modules_dir: /usr/lib/nginx/modules/
 
 modsecurity_branch: v3.0.4

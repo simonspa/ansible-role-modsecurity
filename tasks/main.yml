@@ -58,9 +58,10 @@
   changed_when: false
 
 # nginx writes the compile arguments to stderr
+# Removes possible leftover "--ad-dynamic-module" parameters from nginx compilation time
 - name: parse compile arguments of the installed nginx version
   set_fact:
-    nginx_compile_arguments: "{{ nginx_compile_output.stderr | regex_search('configure arguments: (.*)$', '\\1') | first }}"
+    nginx_compile_arguments: "{{ nginx_compile_output.stderr | regex_search('configure arguments: (.*)$', '\\1') | first | regex_replace(' --add-dynamic-module[^ ]*') }}"
 
 - name: configure the modsecurity-nginx module
   shell: ./configure --add-dynamic-module={{ modsecurity_build_folder }}-nginx {{ nginx_compile_arguments }}

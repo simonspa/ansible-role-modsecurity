@@ -76,7 +76,7 @@
 - name: copy the module to nginx module directory
   copy:
     src: /opt/nginx-{{ installed_nginx_version }}/objs/ngx_http_modsecurity_module.so
-    dest: {{ nginx_modules_dir }}
+    dest: "{{ nginx_modules_dir }}"
     remote_src: yes
     mode: '0644'
     force: yes

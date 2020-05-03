@@ -98,9 +98,9 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - regexp: '^SecRequestBodyLimit'
+    - regexp: "^SecRequestBodyLimit "
       line: "SecRequestBodyLimit {{ modsecurity_max_size }}"
-    - regexp: "^SecRequestBodyNoFilesLimit"
+    - regexp: "^SecRequestBodyNoFilesLimit "
       line: "SecRequestBodyNoFilesLimit {{ modsecurity_max_size }}"
 
 - name: Copy unicode.mapping file also
